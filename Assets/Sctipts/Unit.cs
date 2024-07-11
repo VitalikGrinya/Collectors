@@ -22,10 +22,10 @@ public class Unit : MonoBehaviour
     public void SetParentBase(Storage basement)
     {
         _storage = basement;
-        _storageTransform = basement.GetComponent<Transform>();
+        _storageTransform = basement.transform;
     }
 
-    public void RecieveResource(Resource resource)
+    public void MoveToResource(Resource resource)
     {
         _resource = resource;
         _resourceTransform = resource.transform;
@@ -45,14 +45,14 @@ public class Unit : MonoBehaviour
     private IEnumerator GoingBase()
     {
         yield return MovingTo(_storageTransform);
-        Carry();
+        TransferResourceToBase();
     }
 
     private IEnumerator MovingTo(Transform target)
     {
         while (transform.position != target.position)
         {
-            FollowTarget(target);
+            MoveTo(target);
             yield return null;
         }
     }
@@ -65,9 +65,9 @@ public class Unit : MonoBehaviour
         _coroutine = StartCoroutine(routine);
     }
 
-    private void Carry()
+    private void TransferResourceToBase()
     {
-        _storage.Store(_resource);
+        _storage.StoreResource(_resource);
         WorkStatus = WorkStatuses.Rest;
     }
 
@@ -78,7 +78,7 @@ public class Unit : MonoBehaviour
         WorkStatus = WorkStatuses.GoBase;
     }
 
-    private void FollowTarget(Transform target)
+    private void MoveTo(Transform target)
     {
         transform.position = Vector3.MoveTowards(transform.position, target.position, _speed * Time.deltaTime);
     }

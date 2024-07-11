@@ -41,7 +41,7 @@ public class Storage : MonoBehaviour
         _coroutine = StartCoroutine(OrderingResources());
     }
 
-    public void Store(Resource resource)
+    public void StoreResource(Resource resource)
     {
         Add(resource.Value);
         resource.transform.parent = transform;
@@ -84,7 +84,7 @@ public class Storage : MonoBehaviour
             if (TryGetRestUnit(out Unit unit))
             {
                 Resource resource = _resources.ElementAt(0);
-                unit.RecieveResource(resource);
+                unit.MoveToResource(resource);
                 _resources.Remove(resource);
             }
         }

@@ -1,50 +1,53 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class ResourceGenerator : MonoBehaviour
 {
     [SerializeField] private Resource _prefab;
     [SerializeField] private float _delay;
+    [SerializeField] private float _spawnPointY;
+    [SerializeField] private float _minSpawnPointX;
+    [SerializeField] private float _maxSpawnPointX;
+    [SerializeField] private float _minSpawnPointZ;
+    [SerializeField] private float _maxSpawnPointZ;
+    [SerializeField] private int _poolCapacity = 1;
+    [SerializeField] private int _poolMaxSize = 3;
 
-    [SerializeField] private float _spawnPositionY;
-    [SerializeField] private float _maxBoundX;
-    [SerializeField] private float _maxBoundY;
-
-    [SerializeField] private int _maxInstance;
-    [SerializeField] private int _minInstance;
-
-    private Pool<Resource> _pool;
+    private ObjectPool<Resource> _pool;
 
     private void Awake()
     {
-        _pool = new Pool<Resource>(_prefab, transform, transform, _minInstance);
+        _pool = new ObjectPool<Resource>(
+            createFunc: () => Instantiate(_prefab),
+            actionOnGet: OnGet,
+            actionOnRelease: (resource) => resource.gameObject.SetActive(false),
+            actionOnDestroy: (resource) => Destroy(resource),
+            collectionCheck: true,
+            defaultCapacity: _poolCapacity,
+            maxSize: _poolMaxSize
+            );
     }
 
     private void Start()
     {
-        StartCoroutine(Spawning());
+        StartCoroutine(StartSpawning());
     }
 
-    public void Reset()
+    private void OnGet(Resource resource)
     {
-        _pool.Reset();
+        resource.transform.position = new Vector3(UnityEngine.Random.Range(_minSpawnPointX, _maxSpawnPointX), _spawnPointY, UnityEngine.Random.Range(_minSpawnPointZ, _maxSpawnPointZ));
+        resource.gameObject.SetActive(true);
     }
 
-    private IEnumerator Spawning()
+    private IEnumerator StartSpawning()
     {
-        var waitSpawn = new WaitForSeconds(_delay);
+        var wait = new WaitForSeconds(_delay);
 
-        while (enabled)
+        while (true)
         {
-            Spawn();
-            yield return waitSpawn;
+            _pool.Get();
+            yield return wait;
         }
-    }
-
-    private void Spawn()
-    {
-        Vector3 spawnPosition = new Vector3(Random.Range(-_maxBoundX, _maxBoundX), _spawnPositionY, Random.Range(-_maxBoundY, _maxBoundY));
-        Resource resource = _pool.Peek();
-        resource.transform.position = spawnPosition;
     }
 }
