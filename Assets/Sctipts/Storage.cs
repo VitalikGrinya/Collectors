@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Storage : MonoBehaviour
 {
-    [SerializeField] private Checker _checker;
+    [SerializeField] private Scanner _checker;
     [SerializeField] private List<Unit> _units;
 
     [SerializeField] private float _orderDelay = 0.5f;
@@ -84,7 +84,7 @@ public class Storage : MonoBehaviour
             if (TryGetRestUnit(out Unit unit))
             {
                 Resource resource = _resources.ElementAt(0);
-                unit.GetResource(resource);
+                unit.RecieveResource(resource);
                 _resources.Remove(resource);
             }
         }

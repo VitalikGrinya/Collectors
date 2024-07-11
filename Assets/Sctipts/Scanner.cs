@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class Checker : MonoBehaviour
+public class Scanner : MonoBehaviour
 {
     public event Action<Resource> ResourceFinded;
 

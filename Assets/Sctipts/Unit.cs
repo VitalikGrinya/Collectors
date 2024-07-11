@@ -25,10 +25,10 @@ public class Unit : MonoBehaviour
         _storageTransform = basement.GetComponent<Transform>();
     }
 
-    public void GetResource(Resource resource)
+    public void RecieveResource(Resource resource)
     {
         _resource = resource;
-        _resourceTransform = resource.GetComponent<Transform>();
+        _resourceTransform = resource.transform;
         WorkStatus = WorkStatuses.GoResource;
 
         LaunchCoroutine(CollectingResource());
@@ -45,7 +45,7 @@ public class Unit : MonoBehaviour
     private IEnumerator GoingBase()
     {
         yield return MovingTo(_storageTransform);
-        Store();
+        Carry();
     }
 
     private IEnumerator MovingTo(Transform target)
@@ -53,7 +53,7 @@ public class Unit : MonoBehaviour
         while (transform.position != target.position)
         {
             FollowTarget(target);
-            yield return Time.deltaTime;
+            yield return null;
         }
     }
 
@@ -65,7 +65,7 @@ public class Unit : MonoBehaviour
         _coroutine = StartCoroutine(routine);
     }
 
-    private void Store()
+    private void Carry()
     {
         _storage.Store(_resource);
         WorkStatus = WorkStatuses.Rest;
