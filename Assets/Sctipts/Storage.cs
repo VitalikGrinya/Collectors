@@ -8,12 +8,16 @@ public class Storage : MonoBehaviour
 {
     [SerializeField] private Scanner _checker;
     [SerializeField] private List<Unit> _units;
-
+    [SerializeField] private Unit _unit;
+ 
     [SerializeField] private float _orderDelay = 0.5f;
 
     private HashSet<Resource> _resources;
-    private int _storedResources = 0;
 
+    private bool _isAddUnit = false;
+    private int _storedResources = 0;
+    private int _unitCost = 3;
+        
     private Coroutine _coroutine;
 
     public event Action<int> StoredResourcesChanged;
@@ -21,6 +25,11 @@ public class Storage : MonoBehaviour
     private void Awake()
     {
         _resources = new HashSet<Resource>();
+
+        foreach (Unit unit in _units)
+        {
+            InitUnit(unit);
+        }
     }
 
     private void OnEnable()
@@ -35,10 +44,19 @@ public class Storage : MonoBehaviour
 
     private void Start()
     {
-        foreach (Unit unit in _units)
-            InitUnit(unit);
+
 
         _coroutine = StartCoroutine(OrderingResources());
+    }
+
+    public void CreateUnit()
+    {
+        if (_storedResources >= _unitCost)
+        {
+            var unit = Instantiate(_unit, transform.position, Quaternion.identity);
+            _units.Add(unit);
+            _isAddUnit = true;
+        }
     }
 
     public void StoreResource(Resource resource)
@@ -69,6 +87,13 @@ public class Storage : MonoBehaviour
             return;
 
         _storedResources += value;
+
+        if(_isAddUnit == true)
+        {
+            _storedResources -= _unitCost;
+            _isAddUnit = false;
+        }
+        
         StoredResourcesChanged?.Invoke(_storedResources);
     }
 

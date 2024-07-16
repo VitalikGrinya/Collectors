@@ -55,6 +55,9 @@ public class Unit : MonoBehaviour
             MoveTo(target);
             yield return null;
         }
+
+        if(transform.position != target.position)
+            MoveTo(target);
     }
 
     private void LaunchCoroutine(IEnumerator routine)
