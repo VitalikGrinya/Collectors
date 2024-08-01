@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class Storage : MonoBehaviour
@@ -9,23 +10,31 @@ public class Storage : MonoBehaviour
     [SerializeField] private Scanner _checker;
     [SerializeField] private List<Unit> _units;
     [SerializeField] private Unit _unit;
- 
     [SerializeField] private float _orderDelay = 0.5f;
+    [SerializeField] private Flag _flag;
 
-    private HashSet<Resource> _resources;
-
-    private bool _isAddUnit = false;
+    private bool _isFlagPlaced = false;
+    private List<Resource> _resources;
     private int _storedResources = 0;
     private int _unitCost = 3;
-        
     private Coroutine _coroutine;
+    private StorageSpawner _storageSpawner;
+
 
     public event Action<int> StoredResourcesChanged;
 
     private void Awake()
     {
-        _resources = new HashSet<Resource>();
+        _resources = new List<Resource>();
+    }
 
+    private void Start()
+    {
+        _coroutine = StartCoroutine(OrderingResources());
+    }
+
+    private void Update()
+    {
         foreach (Unit unit in _units)
         {
             InitUnit(unit);
@@ -42,28 +51,35 @@ public class Storage : MonoBehaviour
         _checker.ResourceFinded -= WriteResource;
     }
 
-    private void Start()
-    {
-
-
-        _coroutine = StartCoroutine(OrderingResources());
-    }
-
     public void CreateUnit()
     {
         if (_storedResources >= _unitCost)
         {
             var unit = Instantiate(_unit, transform.position, Quaternion.identity);
+            _storedResources -= _unitCost;
+            unit.SetStorageSpawner(_storageSpawner);
             _units.Add(unit);
-            _isAddUnit = true;
+            StoredResourcesChanged?.Invoke(_storedResources);
         }
+    }
+
+    public void SetFlagPlaced()
+    {
+        _isFlagPlaced = false;
+    }
+
+    public void SetFlag(Flag flag)
+    {
+        _flag = flag;
+        _isFlagPlaced = true;
+
     }
 
     public void StoreResource(Resource resource)
     {
         Add(resource.Value);
         resource.transform.parent = transform;
-        resource.gameObject.SetActive(false);
+        Destroy(resource.gameObject);
     }
 
     private bool TryGetRestUnit(out Unit result)
@@ -88,12 +104,6 @@ public class Storage : MonoBehaviour
 
         _storedResources += value;
 
-        if(_isAddUnit == true)
-        {
-            _storedResources -= _unitCost;
-            _isAddUnit = false;
-        }
-        
         StoredResourcesChanged?.Invoke(_storedResources);
     }
 

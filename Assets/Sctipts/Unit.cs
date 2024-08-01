@@ -9,6 +9,8 @@ public class Unit : MonoBehaviour
     private Resource _resource;
     private Transform _resourceTransform;
     private Storage _storage;
+    private StorageSpawner _storageSpawner;
+    private Flag _flag;
     private Transform _storageTransform;
     private Coroutine _coroutine;
 
@@ -19,19 +21,38 @@ public class Unit : MonoBehaviour
         WorkStatus = WorkStatuses.Rest;
     }
 
-    public void SetParentBase(Storage basement)
+    public void SetParentBase(Storage parentStorage)
     {
-        _storage = basement;
-        _storageTransform = basement.transform;
+        _storage = parentStorage;
+        _storageTransform = parentStorage.transform;
     }
 
-    public void MoveToResource(Resource resource)
+    public void MoveToResource(Component newTarget)
     {
-        _resource = resource;
-        _resourceTransform = resource.transform;
-        WorkStatus = WorkStatuses.GoResource;
+        if (newTarget == null)
+            return;
 
-        LaunchCoroutine(CollectingResource());
+        if (newTarget is Resource resource)
+        {
+            _resource = resource;
+            _resourceTransform = resource.transform;
+            WorkStatus = WorkStatuses.GoResource;
+
+            LaunchCoroutine(CollectingResource());
+        }
+        else if (newTarget is Flag flag)
+        {
+            _flag = flag;
+            _resourceTransform = flag.transform;
+            WorkStatus = WorkStatuses.GoResource;
+
+            LaunchCoroutine(CollectingResource());
+        }
+    }
+
+    public void SetStorageSpawner(StorageSpawner storageSpawner)
+    {
+        _storageSpawner = storageSpawner;
     }
 
     private IEnumerator CollectingResource()
@@ -56,7 +77,7 @@ public class Unit : MonoBehaviour
             yield return null;
         }
 
-        if(transform.position != target.position)
+        if (transform.position != target.position)
             MoveTo(target);
     }
 
