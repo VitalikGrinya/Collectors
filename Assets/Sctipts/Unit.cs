@@ -55,6 +55,18 @@ public class Unit : MonoBehaviour
         _storageSpawner = storageSpawner;
     }
 
+    private void CreateNewBase()
+    {
+        Vector3 newStoragePosition = new Vector3(_flag.transform.position.x, 1.01f, _flag.transform.position.z);
+        Storage newStorage = _storageSpawner.Spawn(newStoragePosition, _flag);
+        //_storage.RemoveFlag(this);
+
+        _storage = newStorage;
+        //newStorage.AddBot(this);
+
+        _flag = null;
+    }
+
     private IEnumerator CollectingResource()
     {
         yield return MovingTo(_resourceTransform);

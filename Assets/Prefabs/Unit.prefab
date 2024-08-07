@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 543539540088037177}
   - component: {fileID: 3306417439015003818}
   - component: {fileID: 6564668514505496694}
-  - component: {fileID: 1450894977849927170}
+  - component: {fileID: 5478526068295620426}
   m_Layer: 0
   m_Name: Unit
   m_TagString: Untagged
@@ -65,7 +65,7 @@ Transform:
   m_Children:
   - {fileID: 8589046172411627619}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &543539540088037177
 MeshFilter:
@@ -140,7 +140,7 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!114 &1450894977849927170
+--- !u!114 &5478526068295620426
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -149,7 +149,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6521268240735620773}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14ff35390e30e8348bca74a45b6ad9e0, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e08907f01cc7cc49a7cedc652a6368b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 4

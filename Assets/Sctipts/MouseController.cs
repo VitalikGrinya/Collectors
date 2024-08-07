@@ -7,7 +7,7 @@ public class MouseController : MonoBehaviour
 
     private Storage _storage;
     private Flag _currentFlag;
-    private bool _isStorageSelected = false;
+    private bool _isStorageSelected;
 
     private void Update()
     {
@@ -19,11 +19,12 @@ public class MouseController : MonoBehaviour
 
     private void InputFlag()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(transform.position, transform.forward * 200, Color.red);
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            if (_isStorageSelected == true)
+            if (_isStorageSelected)
             {
                 InstallFlag(hit);
             }

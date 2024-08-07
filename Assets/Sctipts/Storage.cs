@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
+
 
 public class Storage : MonoBehaviour
 {
@@ -35,6 +35,13 @@ public class Storage : MonoBehaviour
 
     private void Update()
     {
+        AddUnits(_unit);
+
+        if (_isFlagPlaced == false)
+        {
+            CreateUnit();
+        }
+
         foreach (Unit unit in _units)
         {
             InitUnit(unit);
@@ -51,7 +58,7 @@ public class Storage : MonoBehaviour
         _checker.ResourceFinded -= WriteResource;
     }
 
-    public void CreateUnit()
+    private void CreateUnit()
     {
         if (_storedResources >= _unitCost)
         {
@@ -60,6 +67,14 @@ public class Storage : MonoBehaviour
             unit.SetStorageSpawner(_storageSpawner);
             _units.Add(unit);
             StoredResourcesChanged?.Invoke(_storedResources);
+        }
+    }
+
+    private void AddUnits(Unit unit)
+    {
+        if(_units.Count == 0)
+        {
+            _units.Add(unit);
         }
     }
 

@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 871406289588965469}
   - component: {fileID: 421652322769733850}
   - component: {fileID: -8727707897963093290}
-  - component: {fileID: -8582102399708680691}
-  m_Layer: 0
+  - component: {fileID: 5845828916731991028}
+  m_Layer: 6
   m_Name: Goods
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -136,7 +136,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 116
   m_CollisionDetection: 0
---- !u!114 &-8582102399708680691
+--- !u!114 &5845828916731991028
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5119773021856959912}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da61fd43f08819e40947591792fe3154, type: 3}
+  m_Script: {fileID: 11500000, guid: aaf10770d1fc174478b0e0ddbc7d9585, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _defaultValue: 1
