@@ -1,53 +1,44 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class ResourceGenerator : MonoBehaviour
 {
-    [SerializeField] private Resource _prefab;
     [SerializeField] private float _delay;
-    [SerializeField] private float _spawnPointY;
-    [SerializeField] private float _minSpawnPointX;
-    [SerializeField] private float _maxSpawnPointX;
-    [SerializeField] private float _minSpawnPointZ;
-    [SerializeField] private float _maxSpawnPointZ;
-    [SerializeField] private int _poolCapacity = 1;
-    [SerializeField] private int _poolMaxSize = 3;
+    [SerializeField] private Pool _pool;
 
-    private ObjectPool<Resource> _pool;
-
-    private void Awake()
-    {
-        _pool = new ObjectPool<Resource>(
-            createFunc: () => Instantiate(_prefab),
-            actionOnGet: OnGet,
-            actionOnRelease: (resource) => resource.gameObject.SetActive(false),
-            actionOnDestroy: (resource) => Destroy(resource),
-            collectionCheck: true,
-            defaultCapacity: _poolCapacity,
-            maxSize: _poolMaxSize
-            );
-    }
+    private float _minPositionAxis = -8f;
+    private float _maxPositionAxis = 8f;
+    private float _positionAxisY = 0.5f;
 
     private void Start()
     {
-        StartCoroutine(StartSpawning());
+        StartCoroutine(GenerateResource());
     }
 
-    private void OnGet(Resource resource)
-    {
-        resource.transform.position = new Vector3(UnityEngine.Random.Range(_minSpawnPointX, _maxSpawnPointX), _spawnPointY, UnityEngine.Random.Range(_minSpawnPointZ, _maxSpawnPointZ));
-        resource.gameObject.SetActive(true);
-    }
-
-    private IEnumerator StartSpawning()
+    private IEnumerator GenerateResource()
     {
         var wait = new WaitForSeconds(_delay);
 
-        while (true)
+        while(enabled)
         {
-            _pool.Get();
+            Spawn();
             yield return wait;
         }
+    }
+
+    private void Spawn()
+    {
+        Vector3 spawnPoint = new Vector3(Random.Range(_minPositionAxis, _maxPositionAxis), _positionAxisY, Random.Range(_minPositionAxis, _maxPositionAxis));
+
+        var resource = _pool.GetObject();
+        resource.transform.position = spawnPoint;
+        resource.gameObject.SetActive(true);
+        resource.ReleasingResource += ReleaseResource;
+    }
+
+    private void ReleaseResource(Resource resource)
+    {
+        resource.ReleasingResource -= ReleaseResource;
+        _pool.PutObject(resource);
     }
 }

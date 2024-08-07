@@ -1,13 +1,13 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Resource : MonoBehaviour
 {
-    [SerializeField] private int _defaultValue = 1;
+    public event Action<Resource> ReleasingResource;
 
-    public int Value { get; private set; }
-
-    public Resource()
+    public void Release()
     {
-        Value = _defaultValue;
+        ReleasingResource?.Invoke(this);
     }
 }

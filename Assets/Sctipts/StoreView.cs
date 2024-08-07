@@ -8,12 +8,12 @@ public class StoreView : MonoBehaviour
 
     private void OnEnable()
     {
-        _storage.StoredResourcesChanged += UpdateNumber;
+        _storage.ResourcesChanged += UpdateNumber;
     }
 
     private void OnDisable()
     {
-        _storage.StoredResourcesChanged -= UpdateNumber;
+        _storage.ResourcesChanged -= UpdateNumber;
     }
 
     private void UpdateNumber(int value)

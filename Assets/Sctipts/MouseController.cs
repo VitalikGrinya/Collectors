@@ -13,14 +13,13 @@ public class MouseController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            InputFlag();
+            ClickMouse();
         }
     }
 
-    private void InputFlag()
+    private void ClickMouse()
     {
         Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(transform.position, transform.forward * 200, Color.red);
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {

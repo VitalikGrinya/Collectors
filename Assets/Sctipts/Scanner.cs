@@ -1,15 +1,28 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Scanner : MonoBehaviour
 {
-    public event Action<Resource> ResourceFinded;
+    [SerializeField] private LayerMask _layerMask;
 
-    private void OnTriggerEnter(Collider other)
+    private float _radius = 360f;
+    private float _maxDistance = Mathf.Infinity;
+
+    public List<Resource> GetAllResources()
     {
-        if (other.TryGetComponent(out Resource resource))
+        RaycastHit[] raycastHits = Physics.SphereCastAll(transform.position, _radius, Vector3.one, _maxDistance, _layerMask);
+
+        List<Resource> resources = new List<Resource>();
+
+        foreach(RaycastHit hit in raycastHits)
         {
-            ResourceFinded?.Invoke(resource);
+            if(hit.collider.TryGetComponent(out Resource resource))
+            {
+                resources.Add(resource);
+            }
         }
+
+        return resources;
     }
 }

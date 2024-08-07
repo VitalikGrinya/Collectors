@@ -1,81 +1,51 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
-
+[RequireComponent(typeof(Scanner), typeof(UnitSpawner))]
 public class Storage : MonoBehaviour
 {
-    [SerializeField] private Scanner _checker;
-    [SerializeField] private List<Unit> _units;
-    [SerializeField] private Unit _unit;
-    [SerializeField] private float _orderDelay = 0.5f;
-    [SerializeField] private Flag _flag;
+    [SerializeField] private ResourceData _resourceData;
+
+    private float _resourceCollectionDelay = 0.1f;
+    private float _spawnRadius = 3f;
+    private int _resourcesForNewStotage = 5;
+    private int _resourcesForNewUnit = 3;
+    private int _resourceCount = 0;
+    private int _startCountUnits = 3;
 
     private bool _isFlagPlaced = false;
-    private List<Resource> _resources;
-    private int _storedResources = 0;
-    private int _unitCost = 3;
-    private Coroutine _coroutine;
-    private StorageSpawner _storageSpawner;
+    private bool _isCreatedUnit = false;
 
+    private List<Unit> _units = new List<Unit>();
 
-    public event Action<int> StoredResourcesChanged;
+    private UnitSpawner _unitSpawner;
+    private Scanner _scanner;
+    private Flag _flag;
+
+    public event UnityAction<int> ResourcesChanged;
 
     private void Awake()
     {
-        _resources = new List<Resource>();
+        _scanner = GetComponent<Scanner>();
+        _unitSpawner = GetComponent<UnitSpawner>();
     }
 
     private void Start()
     {
-        _coroutine = StartCoroutine(OrderingResources());
-    }
-
-    private void Update()
-    {
-        AddUnits(_unit);
-
-        if (_isFlagPlaced == false)
+        if (_isCreatedUnit == false)
         {
-            CreateUnit();
+            CreateUnit(_startCountUnits);
         }
 
-        foreach (Unit unit in _units)
-        {
-            InitUnit(unit);
-        }
+        StartCoroutine(CollectResources());
     }
 
-    private void OnEnable()
+    public void SetResourceData(ResourceData resourceData)
     {
-        _checker.ResourceFinded += WriteResource;
-    }
-
-    private void OnDisable()
-    {
-        _checker.ResourceFinded -= WriteResource;
-    }
-
-    private void CreateUnit()
-    {
-        if (_storedResources >= _unitCost)
-        {
-            var unit = Instantiate(_unit, transform.position, Quaternion.identity);
-            _storedResources -= _unitCost;
-            unit.SetStorageSpawner(_storageSpawner);
-            _units.Add(unit);
-            StoredResourcesChanged?.Invoke(_storedResources);
-        }
-    }
-
-    private void AddUnits(Unit unit)
-    {
-        if(_units.Count == 0)
-        {
-            _units.Add(unit);
-        }
+        _resourceData = resourceData;
     }
 
     public void SetFlagPlaced()
@@ -83,76 +53,147 @@ public class Storage : MonoBehaviour
         _isFlagPlaced = false;
     }
 
+    public void AddUnit(Unit unit)
+    {
+        if (unit != null && _units.Contains(unit) == false)
+        {
+            _units.Add(unit);
+        }
+    }
+
+    public void SetUnitCreated()
+    {
+        _isCreatedUnit = true;
+    }
+
     public void SetFlag(Flag flag)
     {
         _flag = flag;
         _isFlagPlaced = true;
-
     }
 
-    public void StoreResource(Resource resource)
+    public void TakeResource(Resource resource)
     {
-        Add(resource.Value);
-        resource.transform.parent = transform;
-        Destroy(resource.gameObject);
+        if (_isFlagPlaced)
+        {
+            if (_resourceCount >= _resourcesForNewStotage)
+            {
+                SpawnNewStorage();
+            }
+        }
+        else
+        {
+            int countNewUnit = _resourceCount / _resourcesForNewUnit;
+
+            CreateNewUnit(countNewUnit);
+        }
+
+        _resourceCount++;
+        ResourcesChanged?.Invoke(_resourceCount);
+
+        _resourceData.ReleaseResource(resource);
     }
 
-    private bool TryGetRestUnit(out Unit result)
+    public void RemoveFlag(Unit unit)
+    {
+        _isFlagPlaced = false;
+        Destroy(_flag.gameObject);
+        _flag = null;
+
+        DetachUnit(unit);
+    }
+
+    public void DetachUnit(Unit unit)
+    {
+        if (unit != null && _units.Contains(unit))
+        {
+            _units.Remove(unit);
+            unit.SetStorage(null);
+            unit.IsBusy = false;
+        }
+    }
+
+    private void SpawnNewStorage()
     {
         foreach (Unit unit in _units)
         {
-            if (unit.WorkStatus == WorkStatuses.Rest)
+            if (unit.IsBusy == false)
             {
-                result = unit;
-                return true;
+                unit.SetDestination(_flag);
+                _resourceCount -= _resourcesForNewStotage;
+                break;
             }
         }
-
-        result = null;
-        return false;
     }
 
-    private void Add(int value)
+    private void CreateNewUnit(int countNewUnit)
     {
-        if (value <= 0)
-            return;
-
-        _storedResources += value;
-
-        StoredResourcesChanged?.Invoke(_storedResources);
-    }
-
-    private void InitUnit(Unit unit)
-    {
-        unit.SetParentBase(transform.GetComponent<Storage>());
-    }
-
-    private void OrderResource()
-    {
-        if (_resources.Count > 0)
+        if (_resourceCount >= _resourcesForNewUnit)
         {
-            if (TryGetRestUnit(out Unit unit))
+            for (int i = 0; i < countNewUnit; i++)
             {
-                Resource resource = _resources.ElementAt(0);
-                unit.MoveToResource(resource);
-                _resources.Remove(resource);
+                _resourceCount -= _resourcesForNewUnit;
+                CreateUnit(1);
             }
         }
     }
 
-    private void WriteResource(Resource resource)
+    private void CreateUnit(int startCount)
     {
-        _resources.Add(resource);
+        for (int i = 0; i < startCount; i++)
+        {
+            Vector3 randomPosition = transform.position + new Vector3(Random.Range(-_spawnRadius, _spawnRadius), 0, Random.Range(-_spawnRadius, _spawnRadius));
+            Unit unit = _unitSpawner.Spawn(randomPosition);
+            unit.SetStorage(this);
+            _units.Add(unit);
+        }
     }
 
-    private IEnumerator OrderingResources()
+    private IEnumerator CollectResources()
     {
-        var wait = new WaitForSeconds(_orderDelay);
+        var wait = new WaitForSeconds(_resourceCollectionDelay);
 
         while (true)
         {
-            OrderResource();
             yield return wait;
+            SetGoals();
+        }
+    }
+
+    private void SetGoals()
+    {
+        if (_isFlagPlaced && _resourceCount >= _resourcesForNewStotage)
+        {
+            foreach (Unit unit in _units)
+            {
+                if (unit.IsBusy == false)
+                {
+                    unit.SetDestination(_flag);
+                    _resourceCount -= _resourcesForNewStotage;
+                    ResourcesChanged?.Invoke(_resourceCount);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            List<Resource> availableResources = _scanner.GetAllResources()
+                .Where(resource => _resourceData.IsResourceBusy(resource) == false).ToList();
+
+            if (availableResources.Count > 0)
+            {
+                Resource resource = availableResources.First();
+
+                foreach (Unit unit in _units)
+                {
+                    if (unit.IsBusy == false)
+                    {
+                        _resourceData.OccupyResource(resource);
+                        unit.SetDestination(resource);
+                        break;
+                    }
+                }
+            }
         }
     }
 }

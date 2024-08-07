@@ -1,121 +1,95 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
-    [SerializeField] private float _speed;
-    [SerializeField] private Transform _holdPoint;
+    private float _moveSpeed = 4f;
+    private float _pickupRange = 0.5f;
+    private float _carryDistance = 0.5f;
+    private float _buildDistance = 1f;
 
-    private Resource _resource;
-    private Transform _resourceTransform;
-    private Storage _storage;
     private StorageSpawner _storageSpawner;
-    private Flag _flag;
-    private Transform _storageTransform;
-    private Coroutine _coroutine;
+    private Storage _storage;
+    private Resource _carriedResource;
+    private Flag _targetFlag;
 
-    public WorkStatuses WorkStatus { get; private set; }
-
-    private void Awake()
-    {
-        WorkStatus = WorkStatuses.Rest;
-    }
-
-    public void SetParentBase(Storage parentStorage)
-    {
-        _storage = parentStorage;
-        _storageTransform = parentStorage.transform;
-    }
-
-    public void MoveToResource(Component newTarget)
-    {
-        if (newTarget == null)
-            return;
-
-        if (newTarget is Resource resource)
-        {
-            _resource = resource;
-            _resourceTransform = resource.transform;
-            WorkStatus = WorkStatuses.GoResource;
-
-            LaunchCoroutine(CollectingResource());
-        }
-        else if (newTarget is Flag flag)
-        {
-            _flag = flag;
-            _resourceTransform = flag.transform;
-            WorkStatus = WorkStatuses.GoResource;
-
-            LaunchCoroutine(CollectingResource());
-        }
-    }
+    public bool IsBusy { get; set; } = false;
 
     public void SetStorageSpawner(StorageSpawner storageSpawner)
     {
         _storageSpawner = storageSpawner;
     }
 
-    private void CreateNewBase()
+    public void SetDestination(Component targetComponent)
     {
-        Vector3 newStoragePosition = new Vector3(_flag.transform.position.x, 1.01f, _flag.transform.position.z);
-        Storage newStorage = _storageSpawner.Spawn(newStoragePosition, _flag);
-        //_storage.RemoveFlag(this);
+        if (targetComponent == null)
+            return;
+
+        IsBusy = true;
+
+        if (targetComponent is Resource resource)
+        {
+            _carriedResource = resource;
+            StartCoroutine(MoveTo(resource.transform, _pickupRange, PickupResource));
+        }
+        else if (targetComponent is Flag flag)
+        {
+            _targetFlag = flag;
+            StartCoroutine(MoveTo(flag.transform, _buildDistance, CreateNewStorage));
+        }
+    }
+
+    public void SetStorage(Storage storage)
+    {
+        _storage = storage;
+    }
+
+    private void CreateNewStorage()
+    {
+        Vector3 newStoragePosition = new Vector3(_targetFlag.transform.position.x, 1f, _targetFlag.transform.position.z);
+        Storage newStorage = _storageSpawner.Spawn(newStoragePosition, _targetFlag);
+        _storage.RemoveFlag(this);
 
         _storage = newStorage;
-        //newStorage.AddBot(this);
+        newStorage.AddUnit(this);
 
-        _flag = null;
+        _targetFlag = null;
     }
 
-    private IEnumerator CollectingResource()
+    private void PickupResource()
     {
-        yield return MovingTo(_resourceTransform);
+        if (_carriedResource == null)
+            return;
 
-        Grab(_resource);
-        LaunchCoroutine(GoingBase());
+        _carriedResource.transform.SetParent(transform);
+        _carriedResource.transform.localPosition = Vector3.forward * _carryDistance;
+        _carriedResource.transform.localRotation = Quaternion.identity;
+
+        StartCoroutine(MoveTo(_storage.transform, _carryDistance, DropResource));
     }
 
-    private IEnumerator GoingBase()
+    private void DropResource()
     {
-        yield return MovingTo(_storageTransform);
-        TransferResourceToBase();
+        if (_carriedResource == null || _storage == null)
+            return;
+
+        _carriedResource.transform.SetParent(null);
+        _storage.TakeResource(_carriedResource);
+        _carriedResource.Release();
+        _carriedResource = null;
+
+        IsBusy = false;
     }
 
-    private IEnumerator MovingTo(Transform target)
+    private IEnumerator MoveTo(Transform target, float stopDistance, Action OnComplete)
     {
-        while (transform.position != target.position)
+        while((target.position - transform.position).sqrMagnitude > stopDistance /** stopDistance*/) 
         {
-            MoveTo(target);
+            transform.position += (target.position - transform.position).normalized * _moveSpeed * Time.deltaTime;
             yield return null;
         }
 
-        if (transform.position != target.position)
-            MoveTo(target);
-    }
-
-    private void LaunchCoroutine(IEnumerator routine)
-    {
-        if (_coroutine != null)
-            StopCoroutine(_coroutine);
-
-        _coroutine = StartCoroutine(routine);
-    }
-
-    private void TransferResourceToBase()
-    {
-        _storage.StoreResource(_resource);
-        WorkStatus = WorkStatuses.Rest;
-    }
-
-    private void Grab(Resource resource)
-    {
-        resource.transform.parent = transform;
-        resource.transform.position = _holdPoint.position;
-        WorkStatus = WorkStatuses.GoBase;
-    }
-
-    private void MoveTo(Transform target)
-    {
-        transform.position = Vector3.MoveTowards(transform.position, target.position, _speed * Time.deltaTime);
+        OnComplete();
     }
 }
