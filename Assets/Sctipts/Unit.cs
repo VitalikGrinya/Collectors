@@ -84,7 +84,7 @@ public class Unit : MonoBehaviour
 
     private IEnumerator MoveTo(Transform target, float stopDistance, Action OnComplete)
     {
-        while((target.position - transform.position).sqrMagnitude > stopDistance /** stopDistance*/) 
+        while((target.position - transform.position).sqrMagnitude > stopDistance) 
         {
             transform.position += (target.position - transform.position).normalized * _moveSpeed * Time.deltaTime;
             yield return null;
