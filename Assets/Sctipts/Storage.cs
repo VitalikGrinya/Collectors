@@ -177,7 +177,7 @@ public class Storage : MonoBehaviour
         }
         else
         {
-            List<Resource> availableResources = _scanner.GetAllResources()
+            List<Resource> availableResources = _scanner.Scan()
                 .Where(resource => _resourceData.IsResourceBusy(resource) == false).ToList();
 
             if (availableResources.Count > 0)

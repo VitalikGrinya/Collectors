@@ -9,7 +9,7 @@ public class Scanner : MonoBehaviour
     private float _radius = 360f;
     private float _maxDistance = Mathf.Infinity;
 
-    public List<Resource> GetAllResources()
+    public List<Resource> Scan()
     {
         RaycastHit[] raycastHits = Physics.SphereCastAll(transform.position, _radius, Vector3.one, _maxDistance, _layerMask);
 

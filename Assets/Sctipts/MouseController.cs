@@ -1,66 +1,46 @@
 using UnityEngine;
 
-public class MouseController : MonoBehaviour
+public class FlagPlacer : MonoBehaviour
 {
-    [SerializeField] private Flag _flag;
+    [SerializeField] private Flag _flagPrefab;
     [SerializeField] private Camera _camera;
 
     private Storage _storage;
     private Flag _currentFlag;
-    private bool _isStorageSelected;
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            ClickMouse();
-        }
-    }
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-    private void ClickMouse()
-    {
-        Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            if (_isStorageSelected)
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                InstallFlag(hit);
-            }
-            else
-            {
-                SelectStorage(hit);
-            }
-        }
-    }
+                if (hit.collider.TryGetComponent(out Storage storage))
+                {
+                    _storage = storage;
+                }
+                else if (_storage != null && hit.collider.TryGetComponent(out Ground ground))
+                {
+                    Vector3 hitPoint = hit.point;
 
-    private void SelectStorage(RaycastHit hit)
-    {
-        if (hit.transform.TryGetComponent(out Storage storage))
-        {
-            _storage = storage;
-            _currentFlag = storage.GetComponentInChildren<Flag>();
-            _isStorageSelected = true;
-        }
-    }
+                    if (ground.TryGetComponent(out Collider collider) && collider.bounds.Contains(hitPoint))
+                    {
+                        if (_currentFlag == null)
+                        {
+                            _currentFlag = Instantiate(_flagPrefab, new Vector3(hit.point.x, hit.point.y + 1, hit.point.z), Quaternion.identity);
+                            _currentFlag.transform.SetParent(_storage.transform);
+                            _storage.SetFlag(_currentFlag);
+                        }
+                        else
+                        {
+                            _currentFlag.transform.position = new Vector3(hit.point.x, hit.point.y + 1, hit.point.z);
+                        }
 
-    private void InstallFlag(RaycastHit hit)
-    {
-        if(hit.transform.TryGetComponent(out Ground ground))
-        {
-            if(_currentFlag == null)
-            {
-                _currentFlag = Instantiate(_flag, new Vector3(hit.point.x, hit.point.y + 1, hit.point.z), Quaternion.identity);
-                _currentFlag.transform.SetParent(_storage.transform);
-                _storage.SetFlag(_currentFlag);
+                        _storage = null;
+                    }
+                }
             }
-            else
-            {
-                _currentFlag.transform.position = new Vector3(hit.point.x, hit.point.y + 1, hit.point.z);
-            }
-
-            _storage = null;
-            _isStorageSelected = false;
         }
     }
 }
