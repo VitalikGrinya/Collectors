@@ -9,6 +9,8 @@ public class Storage : MonoBehaviour
 {
     [SerializeField] private ResourceData _resourceData;
 
+    private List<Unit> _units = new List<Unit>();
+
     private float _resourceCollectionDelay = 0.1f;
     private float _spawnRadius = 3f;
     private int _resourcesForNewStotage = 5;
@@ -16,10 +18,9 @@ public class Storage : MonoBehaviour
     private int _resourceCount = 0;
     private int _startCountUnits = 3;
 
-    private bool _isFlagPlaced = false;
+    private bool _isFlagPlaced { get; set; } = false;
     private bool _isCreatedUnit = false;
 
-    private List<Unit> _units = new List<Unit>();
 
     private UnitSpawner _unitSpawner;
     private Scanner _scanner;
@@ -53,23 +54,20 @@ public class Storage : MonoBehaviour
         _isFlagPlaced = false;
     }
 
-    public void AddUnit(Unit unit)
+    public void SetUnits(List<Unit> units)
     {
-        if (unit != null && _units.Contains(unit) == false)
-        {
-            _units.Add(unit);
-        }
-    }
-
-    public void SetUnitCreated()
-    {
-        _isCreatedUnit = true;
+        _units = units;
     }
 
     public void SetFlag(Flag flag)
     {
         _flag = flag;
         _isFlagPlaced = true;
+    }
+
+    public void SetUnitCreated()
+    {
+        _isCreatedUnit = true;
     }
 
     public void TakeResource(Resource resource)
@@ -103,7 +101,7 @@ public class Storage : MonoBehaviour
         DetachUnit(unit);
     }
 
-    public void DetachUnit(Unit unit)
+    private void DetachUnit(Unit unit)
     {
         if (unit != null && _units.Contains(unit))
         {

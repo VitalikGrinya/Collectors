@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    private StorageSpawner _storageSpawner;
+    private Storage _storage;
+    private Resource _carriedResource;
+    private Flag _targetFlag;
+
     private float _moveSpeed = 4f;
     private float _pickupRange = 0.5f;
     private float _carryDistance = 0.5f;
     private float _buildDistance = 1f;
 
-    private StorageSpawner _storageSpawner;
-    private Storage _storage;
-    private Resource _carriedResource;
-    private Flag _targetFlag;
 
     public bool IsBusy { get; set; } = false;
 
@@ -49,10 +50,12 @@ public class Unit : MonoBehaviour
     {
         Vector3 newStoragePosition = new Vector3(_targetFlag.transform.position.x, 1f, _targetFlag.transform.position.z);
         Storage newStorage = _storageSpawner.Spawn(newStoragePosition, _targetFlag);
+
         _storage.RemoveFlag(this);
+        _storageSpawner.AddNewUnit(this);
 
         _storage = newStorage;
-        newStorage.AddUnit(this);
+
 
         _targetFlag = null;
     }

@@ -18,4 +18,20 @@ public class StorageSpawner : MonoBehaviour
 
         return newStorage;
     }
+
+    public Storage AddNewUnit(Unit unit)
+    {
+        List<Unit> units= new List<Unit>();
+
+        Storage newStorage = _storagePrefab;
+
+        newStorage.SetUnits(units);
+        
+        if (unit != null && units.Contains(unit) == false)
+        {
+            units.Add(unit);
+        }
+
+        return newStorage;
+    }
 }
