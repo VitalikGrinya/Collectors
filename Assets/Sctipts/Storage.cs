@@ -9,7 +9,9 @@ public class Storage : MonoBehaviour
 {
     [SerializeField] private ResourceData _resourceData;
 
-    private List<Unit> _units = new List<Unit>();
+    private UnitSpawner _unitSpawner;
+    private Scanner _scanner;
+    private Flag _flag;
 
     private float _resourceCollectionDelay = 0.1f;
     private float _spawnRadius = 3f;
@@ -18,15 +20,12 @@ public class Storage : MonoBehaviour
     private int _resourceCount = 0;
     private int _startCountUnits = 3;
 
-    private bool _isFlagPlaced { get; set; } = false;
-    private bool _isCreatedUnit = false;
-
-
-    private UnitSpawner _unitSpawner;
-    private Scanner _scanner;
-    private Flag _flag;
+    public bool IsFlagPlaced { get; set; } = false;
+    public bool IsCreatedUnit { get; set; } = false;
 
     public event UnityAction<int> ResourcesChanged;
+
+    private List<Unit> _units = new List<Unit>();
 
     private void Awake()
     {
@@ -36,7 +35,7 @@ public class Storage : MonoBehaviour
 
     private void Start()
     {
-        if (_isCreatedUnit == false)
+        if (IsCreatedUnit == false)
         {
             CreateUnit(_startCountUnits);
         }
@@ -49,30 +48,23 @@ public class Storage : MonoBehaviour
         _resourceData = resourceData;
     }
 
-    public void SetFlagPlaced()
+    public void AddUnit(Unit unit)
     {
-        _isFlagPlaced = false;
-    }
-
-    public void SetUnits(List<Unit> units)
-    {
-        _units = units;
+        if (unit != null && _units.Contains(unit) == false)
+        {
+            _units.Add(unit);
+        }
     }
 
     public void SetFlag(Flag flag)
     {
         _flag = flag;
-        _isFlagPlaced = true;
-    }
-
-    public void SetUnitCreated()
-    {
-        _isCreatedUnit = true;
+        IsFlagPlaced = true;
     }
 
     public void TakeResource(Resource resource)
     {
-        if (_isFlagPlaced)
+        if (IsFlagPlaced)
         {
             if (_resourceCount >= _resourcesForNewStotage)
             {
@@ -94,7 +86,7 @@ public class Storage : MonoBehaviour
 
     public void RemoveFlag(Unit unit)
     {
-        _isFlagPlaced = false;
+        IsFlagPlaced = false;
         Destroy(_flag.gameObject);
         _flag = null;
 
@@ -147,20 +139,9 @@ public class Storage : MonoBehaviour
         }
     }
 
-    private IEnumerator CollectResources()
-    {
-        var wait = new WaitForSeconds(_resourceCollectionDelay);
-
-        while (true)
-        {
-            yield return wait;
-            SetGoals();
-        }
-    }
-
     private void SetGoals()
     {
-        if (_isFlagPlaced && _resourceCount >= _resourcesForNewStotage)
+        if (IsFlagPlaced && _resourceCount >= _resourcesForNewStotage)
         {
             foreach (Unit unit in _units)
             {
@@ -192,6 +173,17 @@ public class Storage : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    private IEnumerator CollectResources()
+    {
+        var wait = new WaitForSeconds(_resourceCollectionDelay);
+
+        while (true)
+        {
+            yield return wait;
+            SetGoals();
         }
     }
 }

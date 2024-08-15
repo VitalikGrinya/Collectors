@@ -810,6 +810,7 @@ GameObject:
   - component: {fileID: 1710191331}
   - component: {fileID: 1710191336}
   - component: {fileID: 1710191337}
+  - component: {fileID: 1710191340}
   m_Layer: 0
   m_Name: Grow
   m_TagString: Untagged
@@ -918,6 +919,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _storagePrefab: {fileID: 78878466}
   _resourceData: {fileID: 6714720435811857345, guid: 87241eaccf820084e928337f336a87ff, type: 3}
+  _mouseController: {fileID: 78878469}
 --- !u!114 &1710191337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -930,6 +932,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1965aeb56dfd84046bcaff3a24674339, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1710191340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710191330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ff4aada40c12ff41906870d345bfaa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &2051828198
 GameObject:
   m_ObjectHideFlags: 0
